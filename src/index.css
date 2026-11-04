@@ -50,11 +50,19 @@
   }
 }
 
-body {
-  margin: 0;
+*{
+  box-sizing: border-box;
 }
 
-#root {
+body {
+  margin: 0;
+  background-color: #141414;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+
+}
+
+/*#root {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
@@ -64,7 +72,8 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
+
+}*/
 
 h1,
 h2 {

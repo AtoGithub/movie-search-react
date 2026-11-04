@@ -1,121 +1,121 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
+import MovieList from "./components/MovieList";
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [movies, setMovies] = useState([]);
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  
+  async function searchMovies() {
+        if (!query.trim()) {
+              return;
+            }    
+            
+        setError(null);
+        setLoading(true);
+     try{
+        const response = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
+        );
+
+          if (!response.ok) {
+          throw new Error("Failed to fetch movies");
+        }
+
+            const data = await response.json();
+          
+          const formattedMovies = data.results.filter((movie) => movie.id && movie.title && movie.title.trim()).map((movie) => ({
+          id: movie.id,
+          title: movie.title,
+          poster: movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                  : null,
+          year: movie.release_date  ? movie.release_date.slice(0, 4)
+                : "Unknown year",
+          details: movie.overview || "No details available",
+        }));
+         
+          setMovies(formattedMovies);
+          setHasSearched(true);
+          setSelectedMovie(null);
+    }catch(error){
+      setError(error.message);
+    }finally {
+  setLoading(false);
+}
+  
+}
+
+function handleSelectMovie(movie) {
+     console.log("Clicked movie:", movie.title);
+    setSelectedMovie(movie);
+}
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    
+      <main className="app">
+        <header className="app-header">
+                  <h1>CatchMovie</h1>
+                  <p>Find your next movie night.</p>
+        </header>
 
-      <div className="ticks"></div>
+        <div className="search-container">
+          <input
+            className='input-container'
+            type="text"
+            placeholder="Search for a movie..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <button onClick={searchMovies} className='search-btn'>Search</button>
+          {loading && <p className="status-message">Searching movies...</p>}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {selectedMovie && (
+            <div className='selected-movie'>
+                  <h2 className="selected-heading">Selected Movie</h2>
+                  <div className='selected-poster'>
+                    {selectedMovie.poster && (
+                    <img
+                      src={selectedMovie.poster}
+                      alt={selectedMovie.title}
+                    />
+                    )
+                  }
+                  </div>
+                  <div className='selected-info'>
+                    <p className="selected-title">{selectedMovie.title}</p>
+                    <p className="selected-year">{selectedMovie.year}</p>
+                    <p className="selected-details">{selectedMovie.details}</p>
+                  </div>
+                  
+            </div>
+         )}
+
+        <MovieList 
+              movies={movies} 
+              onSelectMovie={handleSelectMovie}
+        />
+
+      
+
+        {!hasSearched && !loading && (
+          <p className="status-message">Search for a movie to get started.</p>
+        )}
+
+        {hasSearched && movies.length === 0 && !loading && !error && (
+          <p className="status-message">No movies found. Try another search.</p>
+        )}
+         {error && <p className="error-message">{error}</p>}
+
+      </main>
+    
   )
 }
 
